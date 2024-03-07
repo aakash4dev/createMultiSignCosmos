@@ -15,7 +15,7 @@ import (
 )
 
 type Vote struct {
-	string    `json:"creator"`
+	Creator   string `json:"creator"`
 	StationId string `json:"stationId"`
 	Vote      bool   `json:"vote"`
 }

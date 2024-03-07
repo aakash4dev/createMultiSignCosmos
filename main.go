@@ -6,19 +6,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
 )
-
-type Vote struct {
-	Creator   string `json:"creator"`
-	StationId string `json:"stationId"`
-	Vote      bool   `json:"vote"`
-}
 
 type VoteResult struct {
 	Votes         []bool   `json:"yes"`
@@ -30,10 +23,21 @@ type VoteResult struct {
 	Message       string   `json:"message"`
 }
 
+func boolToByte(b bool) byte {
+    if b {
+        return 1
+    }
+    return 0
+}
+
+func byteToBool(b byte) bool {
+    return b != 0
+}
+
 func main() {
 
 	accountPath := "./accounts"
-	addressPrefix := "air"
+	// addressPrefix := "air"
 
 	registry, err := cosmosaccount.New(cosmosaccount.WithHome(accountPath))
 	if err != nil {
@@ -60,20 +64,23 @@ func main() {
 	for i := 0; i < 13; i++ {
 
 		accountName := fmt.Sprintf("account%d", i)
-		account, err := registry.GetByName(accountName)
-		addr, err := account.Address(addressPrefix)
-		if err != nil {
-			log.Fatal(err)
-		}
+		// account, err := registry.GetByName(accountName)
+		// addr, err := account.Address(addressPrefix)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
 
-		// data to be signed
-		data := Vote{addr, "stationID", votes[i]}
+		// // data to be signed
+		// data := Vote{addr, "stationID", votes[i]}
 
-		// Serialize data to be signed
-		dataBytes, err := json.Marshal(data)
-		if err != nil {
-			log.Fatal("Failed to marshal data:", err)
-		}
+		// // Serialize data to be signed
+		// dataBytes, err := json.Marshal(data)
+		// if err != nil {
+		// 	log.Fatal("Failed to marshal data:", err)
+		// }
+		// boolean to byte
+		// dataBytes := []byte{votes[i]}
+		dataBytes := []byte{boolToByte(votes[i])}
 
 		// CREATE SIGNATURE
 		signatureBytes, publicKey, err := registry.Keyring.Sign(accountName, dataBytes, 127)
@@ -229,14 +236,15 @@ func isAllSignatureCorrect(signatureArray [][]byte, publicKeyArray [][]byte, dat
 		fmt.Println("Signature verification result: ", verificationResult)
 
 		// unmarshal data
-		var vote Vote
-		err = json.Unmarshal(dataArray[i], &vote)
-		if err != nil {
-			errorMsg := fmt.Errorf("Failed to unmarshal data: %v", err)
-			return false, nil, nil, errorMsg
-		}
+		// var vote Vote
+		// err = json.Unmarshal(dataArray[i], &vote)
+		// if err != nil {
+		// 	errorMsg := fmt.Errorf("Failed to unmarshal data: %v", err)
+		// 	return false, nil, nil, errorMsg
+		// }
+		vote := byteToBool(dataArray[i][0])
 
-		votesArray = append(votesArray, vote.Vote)
+		votesArray = append(votesArray, vote)
 		addressArray = append(addressArray, pubKey.Address().String())
 	}
 
